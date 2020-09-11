@@ -20,14 +20,15 @@ private{ \ {{{
         r@ car@ free s" free-ht-list error2" gthrow  r> dup cdr@ swap free s" free-ht-list error3" gthrow
         true recurse
     then  ;
-: (free-ht)  ( addr count in-loop? q: xt -- )
+: (free-ht-contents)  ( addr count in-loop? q: xt -- )
     if  r> drop  then
     ?dup 0=  if  drop  else  over @ false free-ht-list  1- swap cell+ swap true recurse  then  ;
 
 0 value ht              0 value ht0
 0 value current-key     0 value current-hash        0 value kv-addr
 
-: free-ht-key  ( -- )  current-key 0<>  if  current-key free s" free-ht-key error1" gthrow  then  ;
+: free-ht-key  ( -- )
+    current-key 0<>  if  current-key free s" free-ht-key error1" gthrow  then  0 to current-key  ;
 
 : (hash)  ( addr u1 hash in-loop? -- hash' )
     if  r> drop  then
@@ -52,11 +53,16 @@ private{ \ {{{
         over dup ." at " . ." : " @ ['] print-kv swap print-list cr  1- swap cell+ swap true recurse
     then  ;
 
+: free-ht-contents  ( xt ht -- )  swap >q dup @ swap cell+ swap false (free-ht-contents) q> drop  free-ht-key  ;
+
 }private \ }}}
 
 : make-ht  ( size -- ht )  dup 1+ cells allocate s" make-ht error1" gthrow dup >r !  r@ zero-ht  r>  ;
 : free-ht  ( xt ht -- )  \ xt, if 0>, is called for each value in ht
-    swap >q dup @ swap cell+ swap false (free-ht) q> drop  free-ht-key  ;
+    dup >r free-ht-contents  r> free s" free-ht error1" gthrow  ;
+
+: allot-ht  ( size "name" -- ht )  create  here  swap dup 1+ cells allot  swap dup -rot !  zero-ht  ;
+: clear-ht  ( xt ht -- )  dup >r free-ht-contents  r> zero-ht  ;  \ xt, if 0>, is called for each value in ht
 
 : with-ht  ( ht -- )  dup to ht  cell+ to ht0  ;
 : with-ht-key  ( addr u -- )
@@ -89,3 +95,4 @@ privatize
 \ 
 \ test
 \ }}}
+
