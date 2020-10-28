@@ -53,6 +53,14 @@ private{ \ {{{
         over dup ." at " . ." : " @ ['] print-kv swap print-list cr  1- swap cell+ swap true recurse
     then  ;
 
+0 value kv-xt
+
+: (for-each-ht-kv-pair)  ( addr count in-loop? q: xt -- q: xt)
+    if  r> drop  then
+    ?dup 0=  if  drop  else
+        >r >r  kv-xt r@ @ for-each-list-item  r> cell+ r> 1- true recurse
+    then  ;
+
 : free-ht-contents  ( xt ht -- )  swap >q dup @ swap cell+ swap false (free-ht-contents) q> drop  free-ht-key  ;
 
 }private \ }}}
@@ -61,7 +69,7 @@ private{ \ {{{
 : free-ht  ( xt ht -- )  \ xt, if 0>, is called for each value in ht
     dup >r free-ht-contents  r> free s" free-ht error1" gthrow  ;
 
-: allot-ht  ( size "name" -- ht )  create  here  swap dup 1+ cells allot  swap dup -rot !  zero-ht  ;
+: allot-ht  ( size "name" -- )  create  here  swap dup 1+ cells allot  swap dup -rot !  zero-ht  ;
 : clear-ht  ( xt ht -- )  dup >r free-ht-contents  r> zero-ht  ;  \ xt, if 0>, is called for each value in ht
 
 : with-ht  ( ht -- )  dup to ht  cell+ to ht0  ;
@@ -74,6 +82,8 @@ private{ \ {{{
         cons current-hash cells ht0 + dup >r @ +list  r@ !  r> @ car@ to kv-addr
         current-key count make-cstring kv-addr car!
     then  kv-addr cdr!  ;
+
+: for-each-ht-kv-pair  ( xt -- )  to kv-xt  ht0 ht @ false (for-each-ht-kv-pair)  ;
 
 : print-ht  ( -- ) ht0 ht @ false (print-ht)  ;
 
