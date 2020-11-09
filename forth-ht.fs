@@ -73,6 +73,7 @@ private{ \ {{{
 : clear-ht  ( xt ht -- )  dup >r free-ht-contents  r> zero-ht  ;  \ xt, if 0>, is called for each value in ht
 
 : with-ht  ( ht -- )  dup to ht  cell+ to ht0  ;
+: current-ht  ( -- ht )  ht  ;
 : with-ht-key  ( addr u -- )
     free-ht-key  make-cstring dup to current-key  count hash dup to current-hash  lookup-kv-addr to kv-addr  ;
 : ht-key-exists?  ( -- f )  kv-addr 0<>  ;
